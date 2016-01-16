@@ -37,8 +37,8 @@ def decode_three_byte_utf8(bytes):
         print 'This should be 3-char utf-8'
         first_chunk = ord(bytes[0]) -  0b11100000
         second_chunk = ord(bytes[1]) - 0b10000000
-        third_chunk = ord(bytes[2]) - 0b10000000
-        codepoint = (first_chunk << 15) + (second_chunk << 8) + third_chunk
+        third_chunk = ord(bytes[2]) -  0b10000000
+        codepoint = (first_chunk << 15) + (second_chunk << 6) + third_chunk
         import pdb; pdb.set_trace()
         return unichr(codepoint)
     raise ValueError("Too bad, did not decode")
