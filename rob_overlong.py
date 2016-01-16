@@ -8,7 +8,7 @@ def list_to_byte(lst):
     return bytes([num])
 
 
-def decode_overlong(file, bytes_out, text_out):
+def decode_overlong(file, bytes_out, text_out, textbits_out):
     bits = []
     outbytes = []
     chars = []
@@ -45,14 +45,20 @@ def decode_overlong(file, bytes_out, text_out):
             num <<= 6
             num += byte - 0b10000000
 
+        if num == 0xfeff:
+            continue
+
         text_out.write(chr(num))
         if num < cutoff:
             bits.append(1)
+            textbits_out.write('1')
         else:
             bits.append(0)
+            textbits_out.write('0')
         if len(bits) == 8:
             byte = list_to_byte(bits)
             bytes_out.write(byte)
+            textbits_out.write('\n')
             bits.clear()
 
     return b''.join(outbytes).decode('utf-8', 'replace')
@@ -61,4 +67,5 @@ def decode_overlong(file, bytes_out, text_out):
 the_file = open('overlong.txt', 'rb')
 bytes_out = open('bytes.dat', 'wb')
 text_out = open('text.txt', 'w', encoding='utf-8')
-print(decode_overlong(the_file, bytes_out, text_out))
+textbits_out = open('textbits.txt', 'w', encoding='utf-8')
+print(decode_overlong(the_file, bytes_out, text_out, textbits_out))
