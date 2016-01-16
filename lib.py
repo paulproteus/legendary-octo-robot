@@ -29,6 +29,8 @@ def decode_two_byte_utf8(bytes):
     raise ValueError("Too bad, did not decode")
 
 def decode_three_byte_utf8(bytes):
+    if len(bytes) != 3:
+        raise ValueError('skip me')
     mask_ = 0b11110000
     valid = 0b11100000
     first_char = ord(bytes[0])
@@ -39,7 +41,8 @@ def decode_three_byte_utf8(bytes):
         second_chunk = ord(bytes[1]) - 0b10000000
         third_chunk = ord(bytes[2]) -  0b10000000
         codepoint = (first_chunk << 15) + (second_chunk << 6) + third_chunk
-        import pdb; pdb.set_trace()
+        if codepoint < 0xffff:
+            print 'hee hee'
         return unichr(codepoint)
     raise ValueError("Too bad, did not decode")
 
@@ -60,6 +63,7 @@ def decode_overlong_four_bytes_utf8(bytes):
 TRY_TO_DECODE_WITH_THESE = [
     decode_ascii,
     decode_two_byte_utf8,
+    decode_three_byte_utf8,
 ]
 
 def actual_main():
