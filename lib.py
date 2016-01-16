@@ -40,8 +40,27 @@ def decode_three_byte_utf8(bytes):
         first_chunk = ord(bytes[0]) -  0b11100000
         second_chunk = ord(bytes[1]) - 0b10000000
         third_chunk = ord(bytes[2]) -  0b10000000
-        codepoint = (first_chunk << 15) + (second_chunk << 6) + third_chunk
+        codepoint = (first_chunk << 12) + (second_chunk << 6) + third_chunk
         if codepoint < 0xffff:
+            print 'hee hee'
+        return unichr(codepoint)
+    raise ValueError("Too bad, did not decode")
+
+def decode_four_byte_utf8(bytes):
+    if len(bytes) != 4:
+        raise ValueError('skip me')
+    mask_ = 0b11111000
+    valid = 0b11110000
+    first_char = ord(bytes[0])
+    masked = mask_ & first_char
+    if masked == valid:
+        print 'This should be 4-char utf-8'
+        first_chunk = ord(bytes[0]) -  0b11110000
+        second_chunk = ord(bytes[1]) - 0b10000000
+        third_chunk = ord(bytes[2]) -  0b10000000
+        fourth_chunk = ord(bytes[3]) -  0b10000000
+        codepoint = (first_chunk << (18)) + (second_chunk << (6 + 6)) + (third_chunk << 6) + (fourth_chunk)
+        if codepoint < 0xffffff:
             print 'hee hee'
         return unichr(codepoint)
     raise ValueError("Too bad, did not decode")
@@ -64,6 +83,7 @@ TRY_TO_DECODE_WITH_THESE = [
     decode_ascii,
     decode_two_byte_utf8,
     decode_three_byte_utf8,
+    decode_four_byte_utf8,
 ]
 
 def actual_main():
@@ -79,8 +99,9 @@ def actual_main():
                              repr(encoded) + "that no function could decode.")
         for fn in TRY_TO_DECODE_WITH_THESE:
             try:
-                decoded = fn(encoded)
+                decoded += fn(encoded)
                 encoded = ''
+                print 'so far', decoded
             except:
                 pass
 
@@ -97,5 +118,8 @@ class Tests(unittest.TestCase):
     def test_three_byte_utf8(self):
         self.assertEqual(u"\u0800", decode_three_byte_utf8('\xe0\xa0\x80'))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_four_byte_utf8(self):
+        self.assertEqual(u"\U0001F800", decode_four_byte_utf8('\xF0\x9F\xA0\x80'))
+
+#if __name__ == '__main__':
+#    unittest.main()
