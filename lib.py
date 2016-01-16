@@ -29,15 +29,17 @@ def decode_two_byte_utf8(bytes):
     raise ValueError("Too bad, did not decode")
 
 def decode_three_byte_utf8(bytes):
-    mask_ = 0b11100000
-    valid = 0b11000000
+    mask_ = 0b11110000
+    valid = 0b11100000
     first_char = ord(bytes[0])
     masked = mask_ & first_char
     if masked == valid:
-        print 'This should be 2-char utf-8'
-        first_chunk = ord(bytes[0]) -  0b11000000
+        print 'This should be 3-char utf-8'
+        first_chunk = ord(bytes[0]) -  0b11100000
         second_chunk = ord(bytes[1]) - 0b10000000
-        codepoint = (first_chunk << 6) + (second_chunk)
+        third_chunk = ord(bytes[2]) - 0b10000000
+        codepoint = (first_chunk << 15) + (second_chunk << 8) + third_chunk
+        import pdb; pdb.set_trace()
         return unichr(codepoint)
     raise ValueError("Too bad, did not decode")
 
@@ -57,7 +59,7 @@ def decode_overlong_four_bytes_utf8(bytes):
 
 TRY_TO_DECODE_WITH_THESE = [
     decode_ascii,
-    decode_normal_utf8,
+    decode_two_byte_utf8,
 ]
 
 def actual_main():
@@ -87,6 +89,9 @@ class Tests(unittest.TestCase):
 
     def test_two_byte_utf8(self):
         self.assertEqual(u"\u00E9", decode_two_byte_utf8('\xc3\xa9'))
+
+    def test_three_byte_utf8(self):
+        self.assertEqual(u"\u0800", decode_three_byte_utf8('\xe0\xa0\x80'))
 
 if __name__ == '__main__':
     unittest.main()
